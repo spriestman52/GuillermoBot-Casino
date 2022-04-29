@@ -12,6 +12,15 @@ module.exports = {
             //Slots
 
                     let bet = args[0]
+
+                if(bet === 'help') {
+                    var slotsHelp = new Discord.RichEmbed()
+                    .setAuthor('Slot Machine')
+                    .setColor(15844367)
+                    .addField('**Winnings**', '🍉🍉❔ - **.5x**\n🍒🍒❔ - **1x**\n🔔🔔❔ - **2x**\n🍉🍉🍉 - **2.5x**\n🍒🍒🍒 - **3x**\n💰💰❔ - **4x**\n🔔🔔🔔 - **5x**\n💰💰💰 - **10x**\n💎💎❔ - **15x**\n💎💎💎 - **20x**')
+                    .addField('Usage', '**,slots <bet>**')
+                    message.channel.send(slotsHelp)
+                }
                     parseInt(bet)
 
 

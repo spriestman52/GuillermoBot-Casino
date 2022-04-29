@@ -222,6 +222,14 @@ module.exports = {
                         //Split
                         split1.on('collect', r => {
                             r.remove(r.users.filter(u => u === message.author).first());
+
+                            if(playerCards[0] == playerCards[1]) {
+                            fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent - bet}`)
+                            playerBlackjack.addField(`Your Hand`, `${createString(playerCards[1])} | Total: ${getScore(playerCards)[1]}`);
+                            message.channel.send(playerBlackjack)
+                            } else {
+                                message.channel.send('You cannot split')
+                            }
                         });
 
                         //Double Down
