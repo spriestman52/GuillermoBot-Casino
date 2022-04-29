@@ -54,5 +54,11 @@ client.on ('message', message => {
         if(command === 'wallet') {
             client.commands.get('wallet').execute(message, args);
         };
+        if(command === 'dice') {
+            client.commands.get('dice').execute(message, args);
+        };
+        if(command === 'coinflip') {
+            client.commands.get('coin flip').execute(message, args);
+        };
     });
 client.login(config.token);
