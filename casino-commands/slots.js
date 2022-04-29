@@ -20,6 +20,7 @@ module.exports = {
                     .addField('**Winnings**', '🍉🍉❔ - **.5x**\n🍒🍒❔ - **1x**\n🔔🔔❔ - **2x**\n🍉🍉🍉 - **2.5x**\n🍒🍒🍒 - **3x**\n💰💰❔ - **4x**\n🔔🔔🔔 - **5x**\n💰💰💰 - **10x**\n💎💎❔ - **15x**\n💎💎💎 - **20x**')
                     .addField('Usage', '**,slots <bet>**')
                     message.channel.send(slotsHelp)
+                    return;
                 }
                     parseInt(bet)
 
@@ -31,7 +32,7 @@ module.exports = {
                     if(!args.length) {
                         message.channel.send('Please place a valid bet.')
                         return;
-                    } else if(isNaN(bet)) {
+                    } else if(isNaN(bet) && bet != 'help') {
                         message.channel.send('Please place a number bet.')
                         return;
                     }

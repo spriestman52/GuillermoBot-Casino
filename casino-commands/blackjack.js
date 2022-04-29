@@ -67,7 +67,60 @@ module.exports = {
                     }
                 }
             }
-            
+
+            let cardsGiven = []
+            let playerCards = []
+            let dealerCards = []
+            let splitCards = []
+
+            let suits = ['♣️', '♦️', '♥️', '♠️']
+            let cards = [K, Q, J, 10]
+
+            function blackjackGameLogicSplit(playerBlackjackSplit, msg, choice) {
+                var splitCards = playerCards.map(s => s.slice(1))
+                playerBlackjackSplit = new Discord.RichEmbed();
+                playerBlackjackSplit.setAuthor('BLACKJACK')
+                playerBlackjackSplit.addField(`Dealer's Hand`, `${createString(dealerCards)}`)
+                playerBlackjackSplit.addField(`Hand 1`, `${createString(playerCards[0])} | Total: ${splitCards[0]}`)
+                playerBlackjackSplit.addField(`Hand 2`, `${createString(playerCards[1])} | Total: ${splitCards[1]}`)
+
+
+                if (getScore(playerCards[0]) == 21) {
+                    if (getScore(dealerCards) != 21) {
+                        playerBlackjackSplit.setFooter("You WON!");
+                        fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent + (bet * 2)}`)
+                    } else {
+                        playerBlackjackSplit.setFooter("PUSH!");
+                        fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent + bet}`)
+                    }
+                    gameOver = true;
+                }
+
+                if (getScore(playerCards[0]) <= 21) {
+                    if (((getScore(playerCards[0]) > getScore(dealerCards)) && (choice == '🇸' || choice =='🇩')) || 
+                                getScore(dealerCards) > 21) {
+                        playerBlackjackSplit.setFooter("You WON!");
+                        bet = choice == '🇩' ? bet * 4 : bet * 2;
+                        fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent + bet}`)
+                        gameOver = true;
+                    }
+                }
+                if ((getScore(playerCards[0]) < getScore(dealerCards) && getScore(dealerCards) <= 21) && (choice == '🇸' || choice == '🇩')
+                            || getScore(playerCards[0]) > 21) {
+                    playerBlackjackSplit.setFooter("You LOST!");
+
+                    gameOver = true;
+                }
+                if (getScore(playerCards[0]) == getScore(dealerCards)) {
+                    playerBlackjackSplit.setFooter("PUSH!");
+                    bet = choice == '🇩' ? bet * 2 : bet * 2;
+                    fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent + bet}`)
+
+                    gameOver = true;
+                }
+                msg.edit(playerBlackjackSplit);
+            }
+
             function blackjackGameLogic(playerBlackjack, msg, choice) {
                 playerBlackjack = new Discord.RichEmbed();
                 playerBlackjack.setAuthor('BLACKJACK');
@@ -112,14 +165,6 @@ module.exports = {
             }
 
 
-            let cardsGiven = []
-            let playerCards = []
-            let dealerCards = []
-
-            let suits = ['♣️', '♦️', '♥️', '♠️']
-            let cards = [A, K, Q, J, 10, 9, 8, 7, 6, 5, 4, 3, 2,]
-
-
                     //Game
                     
                 // Give initial cards
@@ -129,10 +174,17 @@ module.exports = {
                 }
 
                 var gameOver = false
+                let gameSplit = false
                 var playerBlackjack = new Discord.RichEmbed()
                 .setAuthor('BLACKJACK')
                 .addField(`Dealer's Hand`, `${createString(dealerCards)} | Total: ${getScore(dealerCards)}`)
                 .addField(`Your Hand`, `${createString(playerCards)} | Total: ${getScore(playerCards)}`);
+
+                var playerBlackjackSplit = new Discord.RichEmbed()
+                .setAuthor('BLACKJACK')
+                .addField(`Dealer's Hand`, `${createString(dealerCards)}`)
+                .addField(`Hand 1`, `${createString(playerCards[0])} | Total: ${splitCards[0]}`)
+                .addField(`Hand 2`, `${createString(playerCards[1])} | Total: ${splitCards[1]}`)
 
                     //Player and Dealer Blackjack
                 if (getScore(playerCards) == 21) {
@@ -181,10 +233,38 @@ module.exports = {
                         const stand1 = msg.createReactionCollector(stand, {timer: 6000});
                         const split1 = msg.createReactionCollector(split, {timer: 6000});
                         const double1 = msg.createReactionCollector(double, {timer: 6000});
+
+
+                                //Split
+                            split1.on('collect', r => {
+                                r.remove(r.users.filter(u => u === message.author).first());
+    
+                                gameSplit = true;
+                                hit1.on('collect', r => {
+                                    r.remove(r.users.filter(u => u === message.author).first());
         
+                                    message.channel.send('swag')
+                                });
+    
+                                var splitCards = playerCards.map(s => s.slice(1))
+                                if(splitCards[0] == splitCards[1]) {
+    
+                                fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent - bet}`)
+    
+                                    blackjackGameLogicSplit(playerBlackjackSplit, msg, '🇵')
+    
+                                } else {
+                                    message.channel.send('You cannot split')
+                                }
+                            });
+
                         //Hit
+                        if(gameSplit == false) {
+                            console.log('swag')
+
                         hit1.on('collect', r => {
                             r.remove(r.users.filter(u => u === message.author).first());
+
                             if (!gameOver) {
                                 getCard(suits, cards, playerCards, cardsGiven);
                                 if (getScore(playerCards) == 21) {
@@ -200,11 +280,13 @@ module.exports = {
                                 }
                                 blackjackGameLogic(playerBlackjack, msg, '🇭');
                             }
+                            
                         });
-                                                        
+                    }                         
                         //Stand
                         stand1.on('collect', r => {
                             r.remove(r.users.filter(u => u === message.author).first());
+
                             if (!gameOver) {
                                 while (true) {
                                     if (getScore(dealerCards) >= 17 && getScore(dealerCards) <= 20) {
@@ -219,19 +301,7 @@ module.exports = {
                             }
                         });
                                                 
-                        //Split
-                        split1.on('collect', r => {
-                            r.remove(r.users.filter(u => u === message.author).first());
-
-                            if(playerCards[0] == playerCards[1]) {
-                            fs.writeFileSync(`./casino/${message.author.username}/credits.json`, `${walletContent - bet}`)
-                            playerBlackjack.addField(`Your Hand`, `${createString(playerCards[1])} | Total: ${getScore(playerCards)[1]}`);
-                            message.channel.send(playerBlackjack)
-                            } else {
-                                message.channel.send('You cannot split')
-                            }
-                        });
-
+                            
                         //Double Down
                         double1.on('collect', r => {
                         r.remove(r.users.filter(u => u === message.author).first());
@@ -253,7 +323,6 @@ module.exports = {
                         }
                         blackjackGameLogic(playerBlackjack, msg, '🇩');
                     });
-
                         })
                     })
                 })
